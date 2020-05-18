@@ -1,0 +1,22 @@
+
+div {
+  display: inline-block;
+  font-size: 30px;
+  padding: 10px;
+}
+
+.secondline {
+  display: block;
+}
+
+.maindiv {
+  margin: auto;
+  width: 100%;
+  padding: 10px;
+  margin-left: 150px;
+  margin-top: 80px;
+}
+
+.buttoncenter {
+  margin-left: 400px;
+}
