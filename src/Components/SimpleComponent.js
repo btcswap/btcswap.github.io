@@ -89,39 +89,44 @@ class SimpleComponent extends Component {
     render() {
         const { sendToken, receiveToken, message, error } = this.state;
         return (
-            <div className="maindiv">
-              <div className="div1">
-                <h2> I want to send </h2>
-              </div>
-
-              <div className="div2">
-                <input type="number" className="grey-text text-darken-3" style={{textAlign: "center", fontSize: "40px", borderBottom: "2px solid black"}} id="amount" value={this.state.amount} onChange={this.handleChange} />
-              </div>
-
-              <div className="div3">
-                <ListComponent id={'sendToken'} disabledToken={''} onChange={this.handleChange} defaultValue={sendToken}/>
-              </div>
-
-              <div className="secondline">
-                <div className="div4">
-                  <h2> and receive </h2>
+          <div className="container maindiv" style={{marginTop:'150px'}}>
+              <div className="row">
+                <div className="col s12 l4" >
+                  <h2 className="div1"> I want to send </h2>
                 </div>
-
-                <div className="div5">
-                  <ListComponent id={'receiveToken'} disabledToken={sendToken} onChange={this.handleChange} defaultValue={receiveToken}/>
+                <div className="col s12 l5" style={{marginTop:'25px'}}>
+                  <input type="number" className="grey-text text-darken-3 div2" style={{ borderBottom: "2px solid black"}} id="amount" value={this.state.amount} onChange={this.handleChange} />
                 </div>
-
-                <div className="div6">
-                  <ReceiveAddress id={'receiveBtcAddress'} receiveToken={receiveToken} onChange={this.handleChange}/>
+                <div className="col s12 l3" style={{marginTop:'25px'}}>
+                  <ListComponent id={'sendToken'} disabledToken={''} onChange={this.handleChange} defaultValue={sendToken}/>
                 </div>
               </div>
 
-              <div className="buttoncenter">
-                <button className="btn grey darken-3" onClick={this.swap}>Connect to Swap</button>
+              <div className="row">
+                  <div className="col s12 l3" >
+                    <h2 className="div1"> and receive </h2>
+                  </div>
+                  <div className="col s12 l3" style={{marginTop:'25px'}}>
+                    <ListComponent id={'receiveToken'} disabledToken={sendToken} onChange={this.handleChange} defaultValue={receiveToken}/>
+                  </div>
+                  <div >
+                    <ReceiveAddress id={'receiveBtcAddress'} receiveToken={receiveToken} onChange={this.handleChange}/>
+                  </div>
               </div>
-              <p>{message}</p>
-              {error ? <p style={{ color: "red" }}>{error}</p> : null}
-            </div> 
+
+              <br/>
+              <div className="row">
+                <div className="col s12 l8 offset-l4" >
+                  <button className="btn grey darken-3" style={{marginLeft:"55px"}} onClick={this.swap}>Connect to Swap</button>
+                </div>
+              <div  className="row">  
+                <div className="col s12 l8 offset-l4">
+                  <p>{message}</p>
+                  {error ? <p style={{ color: "red",marginLeft:"55px" }}>{error}</p> : null}
+                </div>
+              </div>   
+            </div>
+        </div>
         )
     }
 
