@@ -1,6 +1,6 @@
 {
-  "homepage": "http://immutableworks.github.io/btcswap",
-  "name": "multi-btc-wrapper-ui",
+  "homepage": "http://aksaraworks.github.io/btcswap",
+  "name": "btcswap",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

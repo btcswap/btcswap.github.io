@@ -4,13 +4,13 @@ import ReceiveAddress from './ReceiveAddress';
 
 import GatewayJS from "@renproject/gateway";
 import RenBTCAdapter from "../RenBTCAdapter.json";
-import MultiBtcWrapper from "../MultiBtcWrapper.json";
+import MultiCollateralBitcoin from "../MultiCollateralBitcoin.json";
 import RenBTC from "../RenBTC.json";
 import WBTC from "../WBTC.json";
 import Web3 from "web3";
 
-const mwbABI = MultiBtcWrapper.abi;
-const mwbContractAddress = MultiBtcWrapper.networks["42"].address;
+const mcbtcABI = MultiCollateralBitcoin.abi;
+const mcbtcContractAddress = MultiCollateralBitcoin.networks["42"].address;
 
 const renBtcABI = RenBTC.abi;
 const renBtcContractAddress = RenBTC.networks["42"].address;
@@ -22,7 +22,7 @@ const renBtcAdapterAddress = RenBTCAdapter.networks["42"].address;
 
 class SimpleComponent extends Component {
     state = {
-        amount: 0,
+        amount: "",
         sendToken: 'btc',
         receiveToken: '',
         receiveBtcAddress: '',
@@ -34,8 +34,10 @@ class SimpleComponent extends Component {
 
     componentDidMount = async () => {
         let web3Provider;
-        console.log("MultiBtcWrapper", mwbContractAddress);
+        console.log("MultiCollateralBitcoin", mcbtcContractAddress);
         console.log("RenBTCAdapter", renBtcAdapterAddress);
+        console.log("WBTC", wbtcContractAddress);
+        console.log("RenBTC", renBtcContractAddress);
 
         // Initialize web3 (https://medium.com/coinmonks/web3-js-ethereum-javascript-api-72f7b22e2f0a)
         // Modern dApp browsers...
@@ -124,7 +126,9 @@ class SimpleComponent extends Component {
     }
 
     swap = async() => {
-        const {value, sendToken, receiveToken, btcRecipient} = this.state;
+        const {amount, sendToken, receiveToken, receiveBtcAddress} = this.state;
+        const value = Math.floor(parseFloat(amount) * (10 ** 8));
+        console.log(amount, sendToken, receiveToken, receiveBtcAddress);
 
         if (sendToken === "") {
             this.setState({ error: "please enter a valid send token"})
@@ -134,8 +138,8 @@ class SimpleComponent extends Component {
             this.setState({ error: "please enter a valid receive token"})
         }
 
-        if ( sendToken === "btc" && btcRecipient === "") {
-            this.setState({ error: "please enter a valid btcRecipient"})
+        if (receiveToken === "btc" && receiveBtcAddress === "") {
+            this.setState({ error: "please enter a valid receiveBtcAddress"})
             return;
         }
 
@@ -158,13 +162,11 @@ class SimpleComponent extends Component {
         }
     }
     
-    swapWBTCToBTC = async(value) => {
-        const { web3, address, gatewayJS, btcRecipient } = this.state;
-    
-        const amount = Math.floor(parseFloat(value) * (10 ** 8));
+    swapWBTCToBTC = async(amount) => {
+        const { web3, address, gatewayJS, receiveBtcAddress } = this.state;
     
         const renBtcContract = new web3.eth.Contract(renBtcABI, renBtcContractAddress);
-        const balance = await renBtcContract.methods.balanceOf(mwbContractAddress).call();
+        const balance = await renBtcContract.methods.balanceOf(mcbtcContractAddress).call();
         if (balance < amount) {
             this.setState({ error: `insufficent BTC in the wrapper contract (${balance})` });
             return;
@@ -192,7 +194,7 @@ class SimpleComponent extends Component {
             // Arguments expected for calling `deposit`
             contractParams: [
             { name: "_fromBtcVariant", type: "address", value: wbtcContractAddress },
-            { name: "_to", type: "bytes", value: "0x" + Buffer.from(btcRecipient).toString("hex") },
+            { name: "_to", type: "bytes", value: "0x" + Buffer.from(receiveBtcAddress).toString("hex") },
             { name: "_amount", type: "uint256", value: Math.floor(amount) },
             ],
     
@@ -200,16 +202,14 @@ class SimpleComponent extends Component {
             web3Provider: web3.currentProvider,
         }).result();
     
-        this.log(`Transferred ${amount} BTC to ${btcRecipient}.`);
+        this.log(`Transferred ${amount} BTC to ${receiveBtcAddress}.`);
         }
     
-    swapBTCToWBTC = async(value) => {
+    swapBTCToWBTC = async(amount) => {
         const { web3, gatewayJS } = this.state;
-        const amount = parseFloat(value); // BTC
-        console.log(amount);
     
         const wbtcContract = new web3.eth.Contract(renBtcABI, wbtcContractAddress);
-        const balance = await wbtcContract.methods.balanceOf(mwbContractAddress).call();
+        const balance = await wbtcContract.methods.balanceOf(mcbtcContractAddress).call();
         if (balance < amount) {
             this.setState({ error: `insufficent wBTC in the wrapper contract (${balance})` });
             return;
@@ -221,7 +221,7 @@ class SimpleComponent extends Component {
             sendToken: GatewayJS.Tokens.BTC.Btc2Eth,
     
             // Amount of BTC we are sending (in Satoshis)
-            suggestedAmount: Math.floor(amount * (10 ** 8)), // Convert to Satoshis
+            suggestedAmount: Math.floor(amount), // Convert to Satoshis
     
             // The contract we want to interact with
             sendTo: renBtcAdapterAddress,
@@ -237,7 +237,7 @@ class SimpleComponent extends Component {
                 {
                 name: "_msg",
                 type: "bytes",
-                value: web3.eth.abi.encodeParameters(["address"], [renBtcContractAddress]),
+                value: web3.eth.abi.encodeParameters(["address"], [wbtcContractAddress]),
                 }
             ],
     
@@ -280,27 +280,23 @@ class SimpleComponent extends Component {
         }
       }
     
-      depositWBTC = async(value) => {
+      depositWBTC = async(amount) => {
         const { web3, address } = this.state;
-    
-        const amount = Math.floor(parseFloat(value) * (10 ** 8));
     
         const contract = new web3.eth.Contract(wbtcABI, wbtcContractAddress);
     
-        const allowance = await contract.methods.allowance(address, mwbContractAddress).call();
+        const allowance = await contract.methods.allowance(address, mcbtcContractAddress).call();
     
         if (allowance < amount) {
-          await contract.methods.approve(mwbContractAddress, amount.toString()).send({ from: address });
+          await contract.methods.approve(mcbtcContractAddress, amount.toString()).send({ from: address });
         }
     
-        const mwbContract = new web3.eth.Contract(mwbContractAddress, mwbABI);
-        await mwbContract.methods.deposit(wbtcContractAddress, amount.toString()).send({ from: address });
+        const mcbtcContract = new web3.eth.Contract(mcbtcABI, mcbtcContractAddress);
+        await mcbtcContract.methods.deposit(wbtcContractAddress, amount.toString()).send({ from: address });
       }
     
-    depositBtc = async(value) => {
+    depositBtc = async(amount) => {
         const { web3, gatewayJS } = this.state;
-        const amount = parseFloat(value); // BTC
-        console.log(amount);
     
         try {
           await gatewayJS.open({
@@ -308,7 +304,7 @@ class SimpleComponent extends Component {
             sendToken: GatewayJS.Tokens.BTC.Btc2Eth,
     
             // Amount of BTC we are sending (in Satoshis)
-            suggestedAmount: Math.floor(amount * (10 ** 8)), // Convert to Satoshis
+            suggestedAmount: amount, // Convert to Satoshis
     
             // The contract we want to interact with
             sendTo: renBtcAdapterAddress,
@@ -352,14 +348,11 @@ class SimpleComponent extends Component {
         }
       }
     
-      withdrawBTC = async(value) => {
-            // console.log(value);
-            const { web3, gatewayJS, address } = this.state;
-    
-            const amount = Math.floor(parseFloat(value) * (10 ** 8));
-            const recipient = prompt("Enter BTC recipient:");
-        
-            const contract = new web3.eth.Contract(mwbABI, mwbContractAddress);
+      withdrawBTC = async(amount) => {
+            const { web3, gatewayJS, address, receiveBtcAddress } = this.state;
+            
+            console.log("withdrawing btc");
+            const contract = new web3.eth.Contract(mcbtcABI, mcbtcContractAddress);
         
             const allowance = await contract.methods.allowance(address, renBtcAdapterAddress).call();
         
@@ -382,7 +375,7 @@ class SimpleComponent extends Component {
         
               // Arguments expected for calling `deposit`
               contractParams: [
-                { name: "_to", type: "bytes", value: "0x" + Buffer.from(recipient).toString("hex") },
+                { name: "_to", type: "bytes", value: "0x" + Buffer.from(receiveBtcAddress).toString("hex") },
                 { name: "_amount", type: "uint256", value: Math.floor(amount) },
               ],
         
@@ -390,16 +383,18 @@ class SimpleComponent extends Component {
               web3Provider: web3.currentProvider,
             }).result();
         
-            this.log(`Withdrew ${amount} BTC to ${recipient}.`);    
+            this.log(`Withdrew ${amount} BTC to ${receiveBtcAddress}.`);    
       } 
     
-      withdrawWBTC = async(value) => {
+      withdrawWBTC = async(amount) => {
         const { web3, address } = this.state;
-    
-        const amount = Math.floor(parseFloat(value) * (10 ** 8));
-    
-        const mwbContract = new web3.eth.Contract(mwbContractAddress, mwbABI);
-        await mwbContract.methods.withdraw(wbtcContractAddress, amount.toString()).send({ from: address });
+        
+        const mcbtcContract = new web3.eth.Contract(mcbtcABI, mcbtcContractAddress);
+        await mcbtcContract.methods.withdraw(wbtcContractAddress, amount.toString()).send({ from: address });
+      }
+
+      log = async(message) => {
+        console.log(message);
       }
 
       logError = async(message) => {
@@ -408,4 +403,3 @@ class SimpleComponent extends Component {
 }
 
 export default SimpleComponent
-
