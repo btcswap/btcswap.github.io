@@ -35,15 +35,15 @@ class SimpleComponent extends Component {
         error: "",
         address: "",
         userBalances: {
-          "mcbtc": 0.1,
-          "wbtc": 0.1,
+          "mcbtc": 0.0,
+          "wbtc": 0.0,
         },
         contractBalances: {
-          "btc": 0.1,
-          "wbtc": 0.1,
+          "btc": 0.0,
+          "wbtc": 0.0,
         },
         gatewayJS: new GatewayJS("testnet"),
-        loading: true
+        loading: false
     }
 
     componentDidMount = async () => {
@@ -94,12 +94,6 @@ class SimpleComponent extends Component {
         });
 
         this.recoverTransfers().catch(this.logError);
-
-        setTimeout(() => {
-          this.setState({
-            loading: false
-          })
-        }, 3000)
     }
 
     handleChange = event => {
@@ -188,6 +182,7 @@ class SimpleComponent extends Component {
     }
 
     swap = async() => {
+        this.setState({ loading: true });
         const {amount, sendToken, receiveToken, receiveBtcAddress} = this.state;
         const value = Math.floor(parseFloat(amount) * (10 ** 8));
         console.log(amount, sendToken, receiveToken, receiveBtcAddress);
@@ -222,6 +217,7 @@ class SimpleComponent extends Component {
         } else {
             this.setState({ error: `unsupported coin pair ${receiveToken}->${sendToken}` });
         }
+        this.setState({ loading: false });
     }
     
     swapWBTCToBTC = async(amount) => {
@@ -241,7 +237,7 @@ class SimpleComponent extends Component {
         }
     
         // You can surround shiftOut with a try/catch to handle errors.
-    
+        this.setState({ loading: false });
         await gatewayJS.open({
             // Send BTC from the Ethereum blockchain to the Bitcoin blockchain.
             // This is the reverse of shitIn.
@@ -276,7 +272,8 @@ class SimpleComponent extends Component {
             this.setState({ error: `insufficent wBTC in the wrapper contract (${balance})` });
             return;
         }
-    
+
+        this.setState({ loading: false });
         try {
             await gatewayJS.open({
             // Send BTC from the Bitcoin blockchain to the Ethereum blockchain.
@@ -359,7 +356,8 @@ class SimpleComponent extends Component {
     
     depositBtc = async(amount) => {
         const { web3, gatewayJS } = this.state;
-    
+        
+        this.setState({ loading: false });
         try {
           await gatewayJS.open({
             // Send BTC from the Bitcoin blockchain to the Ethereum blockchain.
@@ -423,7 +421,7 @@ class SimpleComponent extends Component {
             }
         
             // You can surround shiftOut with a try/catch to handle errors.
-        
+            this.setState({ loading: false });
             await gatewayJS.open({
               // Send BTC from the Ethereum blockchain to the Bitcoin blockchain.
               // This is the reverse of shitIn.
