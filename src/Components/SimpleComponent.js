@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import ListComponent from './ListComponent';
-import ReceiveAddress from './ReceiveAddress'; 
+import ReceiveAddress from './ReceiveAddress';
+import { Eclipse } from "react-loading-io";
 
 import GatewayJS from "@renproject/gateway";
 import RenBTCAdapter from "../RenBTCAdapter.json";
@@ -20,6 +21,10 @@ const wbtcContractAddress = WBTC.networks["42"].address;
 
 const renBtcAdapterAddress = RenBTCAdapter.networks["42"].address;
 
+const Index = () => {
+  return <Eclipse size={64} />;
+};
+
 class SimpleComponent extends Component {
     state = {
         amount: "",
@@ -29,7 +34,16 @@ class SimpleComponent extends Component {
         message: "",
         error: "",
         address: "",
+        userBalances: {
+          "mcbtc": 0.1,
+          "wbtc": 0.1,
+        },
+        contractBalances: {
+          "btc": 0.1,
+          "wbtc": 0.1,
+        },
         gatewayJS: new GatewayJS("testnet"),
+        loading: true
     }
 
     componentDidMount = async () => {
@@ -71,9 +85,21 @@ class SimpleComponent extends Component {
             return;
         }
 
-        this.setState({ web3, address });
+        this.setState({ web3, address }, () => {
+          // Update balances immediately and every 10 seconds
+          this.updateBalance();
+          setInterval(() => {
+            this.updateBalance();
+          }, 10 * 1000);
+        });
 
         this.recoverTransfers().catch(this.logError);
+
+        setTimeout(() => {
+          this.setState({
+            loading: false
+          })
+        }, 3000)
     }
 
     handleChange = event => {
@@ -87,18 +113,20 @@ class SimpleComponent extends Component {
     }
 
     render() {
-        const { sendToken, receiveToken, message, error } = this.state;
+        const { sendToken, receiveToken, message, error, contractBalances, userBalances } = this.state;
         return (
           <div className="container maindiv" style={{marginTop:'150px'}}>
+            { this.state.loading ? <div style={{display: "flex", justifyContent: "center", textAlign: "center", marginTop: "100px"}}><Index /></div> : 
+            <div>
               <div className="row">
                 <div className="col s12 l4" >
                   <h2 className="div1"> I want to send </h2>
                 </div>
-                <div className="col s12 l5" style={{marginTop:'25px'}}>
-                  <input type="number" className="grey-text text-darken-3 div2" style={{ borderBottom: "2px solid black"}} id="amount" value={this.state.amount} onChange={this.handleChange} />
+                <div className="col s12 l5" style={{marginTop:'30px'}}>
+                  <input type="number" className="grey-text text-darken-3 div2" style={{ borderBottom: "2px solid black", fontSize: "33px"}} id="amount" value={this.state.amount} onChange={this.handleChange} />
                 </div>
-                <div className="col s12 l3" style={{marginTop:'25px'}}>
-                  <ListComponent id={'sendToken'} disabledToken={''} onChange={this.handleChange} defaultValue={sendToken}/>
+                <div className="col s12 l3" style={{marginTop:'37px'}}>
+                  <ListComponent id={'sendToken'} disabledToken={''} onChange={this.handleChange} defaultValue={sendToken} balances={userBalances}/>
                 </div>
               </div>
 
@@ -106,8 +134,8 @@ class SimpleComponent extends Component {
                   <div className="col s12 l3" >
                     <h2 className="div1"> and receive </h2>
                   </div>
-                  <div className="col s12 l3" style={{marginTop:'25px'}}>
-                    <ListComponent id={'receiveToken'} disabledToken={sendToken} onChange={this.handleChange} defaultValue={receiveToken}/>
+                  <div className="col s12 l3" style={{marginTop:'39px'}}>
+                    <ListComponent id={'receiveToken'} disabledToken={sendToken} onChange={this.handleChange} defaultValue={receiveToken} balances={contractBalances}/>
                   </div>
                   <div >
                     <ReceiveAddress id={'receiveBtcAddress'} receiveToken={receiveToken} onChange={this.handleChange}/>
@@ -120,14 +148,43 @@ class SimpleComponent extends Component {
                   <button className="btn grey darken-3" style={{marginLeft:"55px"}} onClick={this.swap}>Connect to Swap</button>
                 </div>
               <div  className="row">  
-                <div className="col s12 l8 offset-l4">
+                <div className="col s12 l9 offset-l3">
                   <p>{message}</p>
                   {error ? <p style={{ color: "red",marginLeft:"55px" }}>{error}</p> : null}
                 </div>
               </div>   
             </div>
+            </div> }
         </div>
         )
+    }
+
+    updateBalance = async() => {
+      const { address, web3 } = this.state;
+      const renBtcContract = new web3.eth.Contract(renBtcABI, renBtcContractAddress);
+      const mcBtcContract = new web3.eth.Contract(mcbtcABI, mcbtcContractAddress);
+      const wBtcContract = new web3.eth.Contract(wbtcABI, wbtcContractAddress);
+
+      const wbtcBalance = await wBtcContract.methods.balanceOf(address).call();
+      const mcbtcBalance = await mcBtcContract.methods.balanceOf(address).call();
+
+      const wbtcContractBalance = await wBtcContract.methods.balanceOf(mcbtcContractAddress).call();
+      const btcContractBalance = await renBtcContract.methods.balanceOf(mcbtcContractAddress).call();
+
+      const userBalances = {
+        "wbtc": parseInt(wbtcBalance.toString()) / 10 ** 8 ,
+        "mcbtc": parseInt(mcbtcBalance.toString()) / 10 ** 8 ,
+      }
+
+      const contractBalances = {
+        "btc": parseInt(btcContractBalance.toString()) / 10 ** 8,
+        "wbtc": parseInt(wbtcContractBalance.toString()) / 10 ** 8,
+      }
+
+      this.setState({    
+        userBalances: userBalances,
+        contractBalances: contractBalances,
+      });
     }
 
     swap = async() => {
