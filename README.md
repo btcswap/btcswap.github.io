@@ -2,8 +2,6 @@
  
 Our designer is busy atm. So, we will be revamping the design of this website soon. The website can be found at https://aksaraworks.github.io/btcswap for now, and will be properly hosted on https://btcswap.io once the re-design is done.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
 ## Available Scripts
 
 In the project directory, you can run:
