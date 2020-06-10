@@ -1,0 +1,30 @@
+{
+  "files": {
+    "main.css": "/static/css/main.c61c320c.chunk.css",
+    "main.js": "/static/js/main.07c94f9b.chunk.js",
+    "main.js.map": "/static/js/main.07c94f9b.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.c1a10eab.js",
+    "runtime-main.js.map": "/static/js/runtime-main.c1a10eab.js.map",
+    "static/js/2.d83f7e54.chunk.js": "/static/js/2.d83f7e54.chunk.js",
+    "static/js/2.d83f7e54.chunk.js.map": "/static/js/2.d83f7e54.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.f3fbc687644c345980f9bb587e4fe495.js": "/precache-manifest.f3fbc687644c345980f9bb587e4fe495.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/main.c61c320c.chunk.css.map": "/static/css/main.c61c320c.chunk.css.map",
+    "static/js/2.d83f7e54.chunk.js.LICENSE.txt": "/static/js/2.d83f7e54.chunk.js.LICENSE.txt",
+    "static/media/arrow.svg": "/static/media/arrow.ce61a549.svg",
+    "static/media/btclogo.c0906d80.svg": "/static/media/btclogo.c0906d80.svg",
+    "static/media/btcswaplogo.png": "/static/media/btcswaplogo.aba8b6a0.png",
+    "static/media/githublogo.svg": "/static/media/githublogo.a989e760.svg",
+    "static/media/gmaillogo.svg": "/static/media/gmaillogo.24e98849.svg",
+    "static/media/multibtclogo.b95f1e78.svg": "/static/media/multibtclogo.b95f1e78.svg",
+    "static/media/index.scss": "/static/media/suisseintl-regularitalic-webfont.90659012.woff2",
+    "static/media/wbtclogo.f142a955.svg": "/static/media/wbtclogo.f142a955.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.c1a10eab.js",
+    "static/js/2.d83f7e54.chunk.js",
+    "static/css/main.c61c320c.chunk.css",
+    "static/js/main.07c94f9b.chunk.js"
+  ]
+}
